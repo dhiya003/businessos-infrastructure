@@ -1,0 +1,56 @@
+version: "3.9"
+
+services:
+
+  postgres:
+    image: postgres:16
+    container_name: businessos-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: businessos
+      POSTGRES_PASSWORD: businessospassword
+      POSTGRES_DB: businessos
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: businessos-n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_FUNCTION_ALLOW_EXTERNAL=*
+      - WEBHOOK_URL=http://localhost:5678
+      - N8N_CORS_ALLOW_ORIGIN=*
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      - postgres
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: businessos-portainer
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+
+  metabase:
+    image: metabase/metabase:latest
+    container_name: businessos-metabase
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:
+  n8n_data:
+  portainer_data:
